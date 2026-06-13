@@ -16,6 +16,36 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix gradlew line endings & permissions
+        run: |
+          if [ -f android/gradlew ]; then
+            # remove CR (Windows) characters that break the shebang and ensure executable
+            sed -i 's/\r$//' android/gradlew || true
+            chmod +x android/gradlew || true
+          fi
+
+      - name: Diagnose gradlew (prints info to log)
+        if: always()
+        run: |
+          echo "=== LIST android/ ==="
+          ls -la android || true
+          echo "=== gradlew details ==="
+          if [ -f android/gradlew ]; then
+            file android/gradlew || true
+            echo "--- shebang (visible) ---"
+            head -n1 android/gradlew | sed -n l || true
+            echo "--- hexdump first 64 bytes ---"
+            command -v xxd >/dev/null && xxd -g 1 -l 64 android/gradlew || true
+            stat -c '%A %a %n' android/gradlew || true
+          else
+            echo "android/gradlew NOT FOUND"
+          fi
+          echo "=== gradle wrapper jar ==="
+          ls -la android/gradle/wrapper || true
+          test -f android/gradle/wrapper/gradle-wrapper.jar && echo "wrapper.jar OK" || echo "wrapper.jar MISSING"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,9 +64,6 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Make Gradle executable
-        run: chmod +x android/gradlew
 
       - name: Clean Gradle
         run: |
