@@ -1,7 +1,12 @@
-module.exports = {
-  presets: ['babel-preset-expo'],
-  plugins: [
-    'nativewind/babel',
-    require('react-native-reanimated/plugin'),
-  ],
+module.exports = function(api) {
+  api.cache(true);
+  return {
+    presets: [
+      'babel-preset-expo',
+      'nativewind/babel'    // dipindahkan ke presets
+    ],
+    plugins: [
+      'react-native-reanimated/plugin' // tetap jadi plugin terakhir
+    ],
+  };
 };
